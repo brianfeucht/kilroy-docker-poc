@@ -2,6 +2,13 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [[ -f "${ROOT_DIR}/.env" ]]; then
+	set -a
+	source "${ROOT_DIR}/.env"
+	set +a
+fi
+
 KILROY_DIR="${ROOT_DIR}/kilroy"
 COMPOSE_FILE="${ROOT_DIR}/docker-compose.yml"
 MODELDB_PATH="${KILROY_DIR}/internal/attractor/modeldb/pinned/openrouter_models.json"

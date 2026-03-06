@@ -21,12 +21,19 @@ The Bedrock proxy requires temporary AWS credentials obtained via STS `AssumeRol
 - An AWS CLI **named profile** that can assume the target role.
 - The **role ARN** to assume.
 
-Both can be overridden with environment variables:
+Copy the example `.env` file and fill in your values:
 
 ```bash
-export AWS_SOURCE_PROFILE=my-profile
-export AWS_ROLE_ARN=arn:aws:iam::123456789012:role/my-role
+cp .env.example .env
 ```
+
+```dotenv
+AWS_SOURCE_PROFILE=my-profile
+AWS_ROLE_ARN=arn:aws:iam::123456789012:role/my-role
+AWS_REGION=us-east-1
+```
+
+Both `refresh-aws-creds.sh` and `run-from-spec.sh` automatically source `.env` when it exists. The file is gitignored so credentials stay local.
 
 ## Getting Started — Three Steps
 
