@@ -276,6 +276,10 @@ if ${USE_BEDROCK}; then
 	export LITELLM_MASTER_KEY="${LITELLM_MASTER_KEY:-sk-local-dev-master-key}"
 fi
 
+# Prevent git from opening an interactive editor for merge commits,
+# which would block headless pipeline runs indefinitely.
+export GIT_MERGE_AUTOEDIT=no
+
 echo "[6/6] Running build pipeline..."
 RUN_OUTPUT="$(./kilroy attractor run --skip-cli-headless-warning --graph "${GRAPH_OUT}" --config "${RUN_CONFIG_PATH}")"
 echo "${RUN_OUTPUT}"
