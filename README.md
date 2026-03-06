@@ -9,45 +9,39 @@ A proof-of-concept that turns a markdown specification into a working codebase u
 | **Docker & Docker Compose** | Runs CXDB (context database) and the LiteLLM Bedrock proxy |
 | **Go** (1.22+) | Builds the `kilroy` binary |
 | **Git** | Manages target repository branches and commits |
-| **AWS CLI v2** | Assumes the IAM role to obtain temporary Bedrock credentials |
-| **jq** | Parses STS credential JSON |
+| **AWS CLI v2** | Configuring named profiles for Bedrock access |
 | **curl** | Health-checks for CXDB and LiteLLM |
 | **Claude CLI** *(optional)* | Used by `kilroy attractor ingest` when converting a spec to a DOT graph |
 
 ### AWS Configuration
 
-The Bedrock proxy requires temporary AWS credentials obtained via STS `AssumeRole`. You need:
+The Bedrock proxy uses your local AWS CLI configuration (`~/.aws/config` and `~/.aws/credentials`) mounted read-only into the container. boto3 handles STS role assumption and automatic credential refresh — no manual token management required.
 
-- An AWS CLI **named profile** that can assume the target role.
-- The **role ARN** to assume.
+You need an AWS CLI **named profile** configured with `role_arn` and `source_profile`. For example:
 
-Copy the example `.env` file and fill in your values:
+```ini
+# ~/.aws/config
+[profile staging]
+role_arn = arn:aws:iam::123456789012:role/my-role
+source_profile = default
+```
+
+Copy the example `.env` file and set the profile name:
 
 ```bash
 cp .env.example .env
 ```
 
 ```dotenv
-AWS_SOURCE_PROFILE=my-profile
-AWS_ROLE_ARN=arn:aws:iam::123456789012:role/my-role
+AWS_PROFILE=staging
 AWS_REGION=us-east-1
 ```
 
-Both `refresh-aws-creds.sh` and `run-from-spec.sh` automatically source `.env` when it exists. The file is gitignored so credentials stay local.
+`run-from-spec.sh` automatically sources `.env` when it exists. The file is gitignored so configuration stays local.
 
-## Getting Started — Three Steps
+## Getting Started — Two Steps
 
-### 1. Refresh AWS Credentials
-
-Source (not execute) the credential script so the current shell picks up the exported tokens. This also starts the LiteLLM Bedrock proxy container and waits for it to become healthy.
-
-```bash
-source ./refresh-aws-creds.sh
-```
-
-Credentials are valid for **1 hour**. Re-run this step when they expire.
-
-### 2. Write or Provide a Spec / DOT File
+### 1. Write or Provide a Spec / DOT File
 
 Create a markdown specification describing the software you want to build, **or** supply a pre-built DOT pipeline graph.
 
@@ -56,9 +50,9 @@ Create a markdown specification describing the software you want to build, **or*
 echo "# My App\nBuild a REST API that ..." > spec.md
 ```
 
-### 3. Run the Factory
+### 2. Run the Factory
 
-Pass the spec (or graph) and a target directory to `run-from-spec.sh`:
+Pass the spec (or graph) and a target directory to `run-from-spec.sh`. The script automatically starts CXDB and the Bedrock proxy (with auto-refreshing AWS credentials):
 
 ```bash
 # From a markdown spec — generates and validates a DOT graph, then executes it
@@ -103,8 +97,7 @@ Both CXDB and LiteLLM expose web UIs for monitoring while the factory is running
 
 ```
 .
-├── refresh-aws-creds.sh          # Step 1 — STS creds + start Bedrock proxy
-├── run-from-spec.sh              # Step 3 — end-to-end factory runner
+├── run-from-spec.sh              # End-to-end factory runner
 ├── run-config.template.yaml      # Kilroy run config (templated)
 ├── docker-compose.yml            # CXDB, LiteLLM proxy, Postgres
 ├── bedrock/

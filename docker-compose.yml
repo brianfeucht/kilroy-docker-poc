@@ -27,6 +27,22 @@ services:
     volumes:
       - ./data/cxdb:/data
 
+  kilroy:
+    build:
+      context: .
+      dockerfile: Dockerfile.kilroy
+    depends_on:
+      - cxdb
+    environment:
+      CXDB_BINARY_ADDR: cxdb:9009
+      CXDB_HTTP_BASE_URL: http://cxdb:80
+    volumes:
+      - .:/workspace
+      - ${KILROY_CODE_DIR:-./kilroy}:/workspace/code
+      - ${KILROY_SPEC_FILE:-./kilroy/demo/solitaire/solitaire-fast.dot}:/workspace/spec/solitaire-fast.dot:ro
+    working_dir: /workspace
+    command: [ "sh", "-lc", "kilroy --help && sleep infinity" ]
+
   bedrock-proxy:
     image: ghcr.io/berriai/litellm:main-latest
     depends_on:
@@ -40,12 +56,11 @@ services:
       STORE_MODEL_IN_DB: "True"
       UI_USERNAME: ${LITELLM_UI_USERNAME:-admin}
       UI_PASSWORD: ${LITELLM_UI_PASSWORD:-changeme}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
-      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+      AWS_PROFILE: ${AWS_PROFILE:-staging}
       AWS_REGION_NAME: ${AWS_REGION_NAME:-us-east-1}
     volumes:
       - ./bedrock/litellm.config.yaml:/app/config.yaml:ro
+      - ${HOME}/.aws:/root/.aws:ro
     command: [ "--config", "/app/config.yaml" ]
 
 volumes:
