@@ -1,0 +1,6 @@
+[submodule "kilroy"]
+	path = kilroy
+	url = https://github.com/brianfeucht/kilroy.git
+[submodule "cxdb"]
+	path = cxdb
+	url = https://github.com/strongdm/cxdb

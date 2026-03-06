@@ -1,0 +1,47 @@
+version: 1
+
+repo:
+  path: __TARGET_REPO__
+
+cxdb:
+  binary_addr: 127.0.0.1:9009
+  http_base_url: http://127.0.0.1:9010
+  autostart:
+    enabled: false
+
+llm:
+  cli_profile: real
+  providers:
+    anthropic:
+      backend: __ANTHROPIC_BACKEND__
+      api:
+        base_url: http://127.0.0.1:4000
+        api_key_env: LITELLM_MASTER_KEY
+    openai:
+      backend: cli
+    google:
+      backend: cli
+
+modeldb:
+  openrouter_model_info_path: __MODELDB_PATH__
+  openrouter_model_info_update_policy: pinned
+
+git:
+  require_clean: false
+  run_branch_prefix: attractor/run
+  commit_per_node: true
+
+runtime_policy:
+  stage_timeout_ms: 0
+  stall_timeout_ms: 600000
+  stall_check_interval_ms: 5000
+  max_llm_retries: 6
+
+preflight:
+  prompt_probes:
+    enabled: true
+    transports: [complete, stream]
+    timeout_ms: 15000
+    retries: 1
+    base_delay_ms: 500
+    max_delay_ms: 5000
